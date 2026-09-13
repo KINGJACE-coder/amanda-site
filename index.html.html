@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - For Your Sister</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #eef4ff 0%, #f6f1ff 45%, #fef6ef 100%);
+            color: #1f2a37;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(3rem, 12vw, 12rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(31, 42, 55, 0.06);
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: min(92vw, 460px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(6px);
+            padding: 28px 22px 20px;
+            border-radius: 22px;
+            box-shadow: 0 20px 40px rgba(76, 92, 128, 0.15);
+            border: 1px solid rgba(151, 167, 204, 0.25);
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            letter-spacing: 0.04em;
+        }
+
+        .subtitle {
+            margin: 8px 0 20px;
+            color: #58657a;
+            font-size: 1rem;
+        }
+
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .score-box {
+            background: #f3f7ff;
+            border-radius: 12px;
+            padding: 12px 10px;
+            border: 1px solid rgba(104, 130, 182, 0.2);
+        }
+
+        .score-label {
+            display: block;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1d4ed8;
+        }
+
+        .ai-score .score-value {
+            color: #ea580c;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 20px 0 18px;
+        }
+
+        .choice-btn {
+            font-size: 1rem;
+            padding: 16px 8px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            color: white;
+            font-weight: 700;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            filter: brightness(1.08);
+        }
+
+        .choice-btn:active {
+            transform: scale(0.98);
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.7;
+            cursor: default;
+            transform: none;
+        }
+
+        .rock { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+        .paper { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .scissors { background: linear-gradient(135deg, #f59e0b, #ea580c); }
+
+        .result-box {
+            min-height: 92px;
+            padding: 16px 14px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.4;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            background: #f8fafc;
+            color: #1f2937;
+        }
+
+        .result-box.win {
+            background: #ecfdf5;
+            border-color: rgba(22, 163, 74, 0.25);
+            color: #166534;
+        }
+
+        .result-box.lose {
+            background: #fff1f2;
+            border-color: rgba(220, 38, 38, 0.2);
+            color: #991b1b;
+        }
+
+        .result-box.draw {
+            background: #f8fafc;
+            border-color: rgba(100, 116, 139, 0.2);
+            color: #334155;
+        }
+
+        .ai-panel {
+            margin-top: 14px;
+            font-size: 0.92rem;
+            color: #475569;
+        }
+
+        .ai-panel strong {
+            color: #1e293b;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 16px 18px;
+            }
+
+            .choices {
+                gap: 10px;
+            }
+
+            .choice-btn {
+                padding: 14px 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="watermark">Chiamanda</div>
+
+<div class="container">
+    <h1 class="title">Rock Paper Scissors</h1>
+    <p class="subtitle">Play against the AI and see who wins the round.</p>
+
+    <div class="scoreboard">
+        <div class="score-box player-score">
+            <span class="score-label">Player</span>
+            <span class="score-value" id="player-score">0</span>
+        </div>
+        <div class="score-box ai-score">
+            <span class="score-label">AI</span>
+            <span class="score-value" id="ai-score">0</span>
+        </div>
+    </div>
+
+    <div class="choices">
+        <button class="choice-btn rock" onclick="play('rock')">✊ Rock</button>
+        <button class="choice-btn paper" onclick="play('paper')">🖐️ Paper</button>
+        <button class="choice-btn scissors" onclick="play('scissors')">✌️ Scissors</button>
+    </div>
+
+    <div class="result-box" id="result-box">Choose your move to start the round!</div>
+
+    <div class="ai-panel">
+        AI chose: <strong id="ai-choice">Waiting...</strong>
+    </div>
+</div>
+
+<script>
+    let playerScore = 0;
+    let aiScore = 0;
+    const choices = ['rock', 'paper', 'scissors'];
+    const emojis = {
+        rock: '✊ Rock',
+        paper: '🖐️ Paper',
+        scissors: '✌️ Scissors'
+    };
+    const winningCombos = {
+        rock: 'scissors',
+        paper: 'rock',
+        scissors: 'paper'
+    };
+
+    const resultBox = document.getElementById('result-box');
+    const aiChoiceText = document.getElementById('ai-choice');
+    const playerScoreEl = document.getElementById('player-score');
+    const aiScoreEl = document.getElementById('ai-score');
+    const buttons = document.querySelectorAll('.choice-btn');
+
+    function setButtonsDisabled(disabled) {
+        buttons.forEach(button => {
+            button.disabled = disabled;
+        });
+    }
+
+    function play(playerChoice) {
+        setButtonsDisabled(true);
+
+        const aiChoice = choices[Math.floor(Math.random() * choices.length)];
+        aiChoiceText.textContent = emojis[aiChoice];
+
+        let outcome = 'draw';
+        let message = `It's a tie! You both picked ${emojis[playerChoice]}.`;
+
+        if (playerChoice === aiChoice) {
+            outcome = 'draw';
+            message = `It's a tie! You both picked ${emojis[playerChoice]}.`;
+        } else if (winningCombos[playerChoice] === aiChoice) {
+            playerScore++;
+            outcome = 'win';
+            message = `You win! ${emojis[playerChoice]} beats ${emojis[aiChoice]}.`;
+        } else {
+            aiScore++;
+            outcome = 'lose';
+            message = `AI wins! ${emojis[aiChoice]} beats ${emojis[playerChoice]}.`;
+        }
+
+        playerScoreEl.textContent = playerScore;
+        aiScoreEl.textContent = aiScore;
+        resultBox.className = `result-box ${outcome}`;
+        resultBox.textContent = message;
+
+        setTimeout(() => {
+            setButtonsDisabled(false);
+        }, 280);
+    }
+</script>
+
+</body>
+</html>
